@@ -31,20 +31,21 @@ Ext.define('CustomApp', {
         value: timeboxscope.getRecord().get('formattedEndDate')
       }],
       sorters: [{
-        property: 'StartDate',
+        property: 'StartDate', //sort by StartDate earliest to latest
         direction: 'ASC'
       }],
       pageSize: 200,
       limit: 1000
     });
     iterationStore.load().then({
-      success: function(results) {
+      success: function(iterationStoreLoadResults) {
         // debugger;
+        //iterationStore results should be sorted already by sprint start date ASC
         console.log('iterationStore load promise success');
-        sprintNames = this._getIterationNames(results);
-        Deft.Promise.all([this._loadCapacities(results),this._loadStories(results)]).then({
-          success: function(loadresults){
-            var datarecords = this._processLoadResults(loadresults);
+        sprintNames = this._getIterationNames(iterationStoreLoadResults);
+        Deft.Promise.all([this._loadCapacities(iterationStoreLoadResults),this._loadStories(iterationStoreLoadResults)]).then({
+          success: function(dataloadresults){
+            var datarecords = this._processLoadResults(dataloadresults, sprintNames);
             this._displayGrid(datarecords, sprintNames);
           },
           failure: function() {
@@ -62,6 +63,7 @@ Ext.define('CustomApp', {
   },
   _getIterationNames: function (iterations){
     var iterNames = [];
+    //st
     _.each(iterations, function(iter){
       if (!iterNames.includes(iter.get('Name'))) {
         iterNames.push(iter.get('Name'));
@@ -107,11 +109,11 @@ Ext.define('CustomApp', {
     // console.log(uspromises);
     return Deft.Promise.all(uspromises);
   },
-  _processLoadResults: function(loadresults) {
+  _processLoadResults: function(loadresults, sprintNames) {
     //loadresults should be two arrays, each being an array of a set of UserIterationCapacities or UserStories
     //loadresults[0] should be the capacities
     //loadresults[1] should be the UserStories
-    // debugger;
+    //debugger;
     var temprecords = []; //array containing all multiple users pi_uic objects
 
     _.each(loadresults[0], function (sprint_uics) {
